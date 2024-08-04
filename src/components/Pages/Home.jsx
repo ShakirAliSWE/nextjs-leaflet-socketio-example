@@ -9,7 +9,7 @@ import useLocation from "@/hooks/useLocation";
 import useSocket from "@/hooks/useSocket";
 
 const HomePage = () => {
-  const socket = useSocket("http://localhost:3000");
+  const socket = useSocket("https://nextjs-leaflet-socketio.vercel.app:3000");
   const [leafletOptions, setLeafletOptions] = useState({ center: null, zoom: null });
   const [users, setUsers] = useRecoilState(atomUsers);
   const userLocation = useLocation();
