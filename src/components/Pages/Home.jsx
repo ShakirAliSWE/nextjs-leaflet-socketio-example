@@ -10,6 +10,7 @@ import useSocket from "@/hooks/useSocket";
 
 const HomePage = () => {
   const socket = useSocket("http://localhost:3000");
+  const [leafletOptions, setLeafletOptions] = useState({ center: null, zoom: null });
   const [users, setUsers] = useRecoilState(atomUsers);
   const userLocation = useLocation();
   const lastLocation = useRef({ current: { latitude: 0, longitude: 0 } });
@@ -20,7 +21,7 @@ const HomePage = () => {
         loading: () => <>Loading Map...</>,
         ssr: false,
       }),
-    []
+    [leafletOptions]
   );
 
   const LeafletMarker = useMemo(
@@ -35,40 +36,51 @@ const HomePage = () => {
   const receiveLocation = (data) => {
     console.log("Received Location ", data);
     const newUsers = [...users];
-    newUsers.push(data);
+    const indexUser = newUsers.findIndex((user) => user.id === data.id);
+    if (indexUser !== -1) {
+      newUsers[indexUser] = data;
+    } else {
+      newUsers.push(data);
+    }
+
     setUsers(newUsers);
+    setLeafletOptions(() => ({ center: [data.latitude, data.longitude], zoom: 8 }));
   };
 
   const removeLocation = (id) => {
-    console.log("removeLocation", id);
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+    console.log("Removed Location", id);
+    const filterUsers = [...users].filter((user) => user.id !== id);
+    setUsers(filterUsers);
   };
 
   useEffect(() => {
-    console.log("useEffect Send Location Loading...", userLocation);
     if (
       lastLocation.current.latitude !== userLocation.latitude &&
-      lastLocation.current.longitude !== userLocation.longitude
+      lastLocation.current.longitude !== userLocation.longitude &&
+      socket
     ) {
+      console.log("Location sent", userLocation);
       socket.emit("send-location", userLocation);
       lastLocation.current = userLocation;
     }
   }, [userLocation]);
 
   useEffect(() => {
-    console.log("useEffect Receive Location Loading...");
-
-    socket.on("receive-location", receiveLocation);
-    socket.on("remove-location", removeLocation);
-
-    return () => {
-      socket.off("receive-location", receiveLocation);
-      socket.off("remove-location", removeLocation);
-    };
+    if (socket) {
+      socket.on("receive-location", receiveLocation);
+      socket.on("remove-location", removeLocation);
+      return () => {
+        socket.off("remove-location", removeLocation);
+      };
+    }
   }, [socket]);
 
+  useEffect(() => {
+    console.log(`~ No of Users : ${users.length}`);
+  }, [users]);
+
   return (
-    <LeafletMap>
+    <LeafletMap {...leafletOptions}>
       {users.map((user) => (
         <LeafletMarker key={user.id} position={[user.latitude, user.longitude]} label={user?.id} />
       ))}

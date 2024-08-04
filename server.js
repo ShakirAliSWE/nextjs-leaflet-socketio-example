@@ -12,15 +12,29 @@ app.prepare().then(() => {
   const httpServer = http.createServer(server);
   const io = socketIo(httpServer);
 
+  // Store client IDs and their corresponding socket IDs
+  const clients = new Map();
+
   io.on("connection", (socket) => {
-    console.log("New client connected:", socket.id);
+    const clientId = socket.handshake.query.clientId;
+    if (clientId) {
+      clients.set(clientId, socket.id);
+    }
 
     socket.on("send-location", (data) => {
-      socket.broadcast.emit("receive-location", { id: socket.id, ...data });
+      const clientId = socket.handshake.query.clientId;
+      if (clientId) {
+        io.emit("receive-location", { id: clientId, ...data });
+      }
     });
 
     socket.on("disconnect", () => {
-      socket.broadcast.emit("remove-location", socket.id);
+      const clientId = socket.handshake.query.clientId;
+      if (clientId) {
+        clients.delete(clientId);
+        io.emit("remove-location", clientId);
+      }
+      console.log(`Server disconnected ${socket.id}`);
     });
   });
 
