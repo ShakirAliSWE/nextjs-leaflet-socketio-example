@@ -1,0 +1,30 @@
+{
+  "name": "nextjs-leaflet-socketio-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "leaflet": "^1.9.4",
+    "next": "^14.2.5",
+    "path": "^0.12.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-geolocated": "^4.1.2",
+    "react-icons": "^4.12.0",
+    "react-leaflet": "^4.2.1",
+    "recoil": "^0.7.7",
+    "recoil-persist": "^5.1.0",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
+  },
+  "devDependencies": {
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5"
+  }
+}
